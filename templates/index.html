@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "components/user_card.html" import user_card %}
+
+{% block title %}EMF Orga Directory{% endblock %}
+
+{% block header_controls %}
+<div class="header-controls">
+    <select id="team-filter" class="glass-select">
+        <option value="all">All Teams</option>
+        {% for team in teams %}
+        <option value="{{ team }}">{{ team }}</option>
+        {% endfor %}
+    </select>
+</div>
+{% endblock %}
+
+{% block content %}
+<main class="container">
+    <div class="user-grid" id="user-grid">
+        {% for user in users %}
+        {{ user_card(user) }}
+        {% endfor %}
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='main.js') }}"></script>
+{% endblock %}
