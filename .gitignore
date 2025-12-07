@@ -15,3 +15,7 @@ client_secrets.json
 
 # Nix
 result*
+
+# Swap files
+*~
+.*.sw[a-z]
