@@ -30,11 +30,11 @@
             <h3>Teams</h3>
             <div class="tags">
                 {% for team in user.teams %}
-                <span class="tag {% if team.is_lead %}tag-lead{% endif %}"
+                <a href="/team/{{ team.team_name }}" class="tag {% if team.is_lead %}tag-lead{% endif %} js-team-filter"
                     title="{% if team.is_lead %}Team Lead{% else %}Member{% endif %}">
                     {{ team.team_name }}
                     {% if team.is_lead %}★{% endif %}
-                </span>
+                </a>
                 {% endfor %}
             </div>
         </div>

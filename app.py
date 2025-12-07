@@ -171,8 +171,9 @@ async def fetch_directory_data() -> dict[str, EnhancedUser]:
 
 
 @app.route("/")
+@app.route("/team/<team_name>")
 @require_login
-async def index() -> str:
+async def index(team_name: str | None = None) -> str:
     user_map = await fetch_directory_data()
     enhanced_users = list(user_map.values())
     all_teams: set[str] = set()
@@ -186,7 +187,35 @@ async def index() -> str:
 
     sorted_teams = sorted(list(all_teams))
 
-    return render_template("index.html", users=enhanced_users, teams=sorted_teams)
+    leads: list[EnhancedUser] = []
+    members: list[EnhancedUser] = []
+    others: list[EnhancedUser] = []
+
+    if team_name:
+        for user in enhanced_users:
+            # Check if user is in the team
+            team_info = next((t for t in user.teams if t.team_name == team_name), None)
+            if team_info:
+                if team_info.is_lead:
+                    leads.append(user)
+                else:
+                    members.append(user)
+            else:
+                others.append(user)
+    else:
+        leads = []
+        members = []
+        others = enhanced_users
+
+    return render_template(
+        "index.html",
+        users=enhanced_users,
+        leads=leads,
+        members=members,
+        others=others,
+        teams=sorted_teams,
+        selected_team=team_name,
+    )
 
 
 @app.route("/user/<username>")
