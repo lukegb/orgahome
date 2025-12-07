@@ -1,0 +1,101 @@
+name: Build
+
+on:
+  pull_request:
+  push:
+
+permissions: {} # jobs specify their own permissions
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - runs-on: ubuntu-24.04
+            os: x86_64-linux
+          - runs-on: ubuntu-24.04-arm
+            os: aarch64-linux
+    name: Build container (${{ matrix.os }})
+    runs-on: ${{ matrix.runs-on }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: samueldr/lix-gha-installer-action@f526e761e1ad201b0f4231f61a2a569f17bcc2ac
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run checks
+        run: nix flake check
+      - name: Build container
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+        run: |
+          $(nix build '.#container' --no-link --print-out-paths) | gzip --fast > "container-$MATRIX_OS.tar.gz"
+      - name: Upload container tar
+        uses: actions/upload-artifact@v5
+        with:
+          name: "container-${{ matrix.os }}.tar.gz"
+          path: "container-${{ matrix.os }}.tar.gz"
+          compression-level: 0 # already compressed
+
+  upload-container:
+    name: Combine and upload container to GHCR
+    if: github.event_name == 'push'
+    runs-on: [ubuntu-24.04]
+    needs: build
+    permissions:
+      contents: read
+      packages: write # this action uploads to GHCR
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: samueldr/lix-gha-installer-action@f526e761e1ad201b0f4231f61a2a569f17bcc2ac
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch built containers
+        uses: actions/download-artifact@v6
+        with:
+          path: containers
+          pattern: container-*
+          merge-multiple: true
+      - name: Merge containers
+        shell: nix-shell -p podman --run "sudo -E bash -e {0}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: ${{ github.ref_name }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPO: ${{ github.repository }}
+        run: |
+          baseimagename="ghcr.io/$GITHUB_REPO"
+          imagename="$baseimagename:$GITHUB_REF"
+
+          # Create a new manifest
+          references="$(ls containers/*.tar.gz | sed 's,^,docker-archive:,')"
+          echo "Creating new manifest as $imagename"
+          echo "Reference images: $references"
+          podman manifest create \
+            --annotation "org.opencontainers.image.vendor=EMFCamp" \
+            --annotation "org.opencontainers.image.title=Orga Home" \
+            --annotation "org.opencontainers.image.created=$(date --iso-8601=seconds)" \
+            --annotation "org.opencontainers.image.revision=$(git rev-parse HEAD)" \
+            --annotation "org.opencontainers.image.url=https://github.com/$GITHUB_REPO" \
+            --annotation "org.opencontainers.image.source=https://github.com/$GITHUB_REPO" \
+            --all \
+            $imagename \
+            $references
+
+          # Dump out the manifest we created
+          podman manifest inspect $imagename
+
+          # Log into GHCR
+          echo $GITHUB_TOKEN | podman login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+          # Upload the container, tagging it with the branch name
+          podman manifest push --all --format oci $imagename docker://$imagename
