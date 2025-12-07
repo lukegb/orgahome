@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
       initialCards.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
       initialCards.forEach((card) => {
         card.classList.remove("hidden-card"); // Ensure server-hidden cards are shown
-        card.style.display = "block";
         grid.appendChild(card);
       });
       return;
@@ -42,14 +41,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (teamInfo) {
         card.classList.remove("hidden-card");
-        card.style.display = "block";
         if (teamInfo.is_lead) {
           leads.push(card);
         } else {
           members.push(card);
         }
       } else {
-        card.style.display = "none";
+        card.classList.add("hidden-card");
       }
     });
 

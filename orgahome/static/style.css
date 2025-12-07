@@ -173,6 +173,10 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+.hidden-card {
+  display: none;
+}
+
 /* Status Indicator */
 .status-indicator {
   position: absolute;
