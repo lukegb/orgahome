@@ -132,8 +132,15 @@
           };
           container = pkgs.dockerTools.streamLayeredImage {
             name = "orgahome";
+            fakeRootCommands = ''
+              ${pkgs.dockerTools.shadowSetup}
+              groupadd -r orgahome
+              useradd -r -g orgahome orgahome
+            '';
+            enableFakechroot = true;
             config = {
               Entrypoint = [ "${default}/bin/orgahome" ];
+              User = "orgahome:orgahome";
               Cmd = [
                 "uvicorn"
               ];
