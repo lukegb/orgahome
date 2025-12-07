@@ -12,3 +12,6 @@ client_secrets.json
 
 # Virtual environments
 .venv
+
+# Nix
+result*

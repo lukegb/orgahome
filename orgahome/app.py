@@ -19,8 +19,8 @@ from flask import (
 from flask_oidc import OpenIDConnect  # type: ignore
 from werkzeug import Response as WerkzeugResponse
 
-from config import Config
-from services import (
+from orgahome.config import Config
+from orgahome.services import (
     MattermostClient,
     MattermostUser,
     UFFDClient,
