@@ -440,3 +440,35 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Machines Table */
+.machines-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.machines-table th {
+  text-align: left;
+  padding: 1rem;
+  color: var(--accent-color);
+  border-bottom: 1px solid var(--card-border);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+}
+
+.machines-table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.machines-table tr:hover td {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.machines-table tr:last-child td {
+  border-bottom: none;
+}

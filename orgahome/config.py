@@ -24,3 +24,10 @@ class Config:
     # Mattermost API Configuration
     MATTERMOST_API_URL = os.environ.get("MATTERMOST_API_URL", "https://chat.orga.emfcamp.org/api/v4")
     MATTERMOST_TOKEN = os.environ.get("MATTERMOST_TOKEN")
+
+    # PuppetDB Configuration
+    PUPPETDB_API_URL = os.environ.get("PUPPETDB_API_URL")
+    PUPPETDB_SSL_VERIFY_HOSTNAME = os.environ.get("PUPPETDB_SSL_VERIFY_HOSTNAME") != "false"
+    PUPPETDB_CA_FILE = os.environ.get("PUPPETDB_CA_FILE")
+    PUPPETDB_CERT_FILE = os.environ.get("PUPPETDB_CERT_FILE")
+    PUPPETDB_KEY_FILE = os.environ.get("PUPPETDB_KEY_FILE")

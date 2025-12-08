@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}EMF{% endblock %}
+{% block content %}
+    <main class="container">
+        <div class="glass-card">
+            <table class="machines-table">
+                <thead>
+                    <tr>
+                        <th>Hostname</th>
+                        <th>Distro</th>
+                        <th>Last contact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for machine in inventory %}
+                        <tr>
+                            <td>{{ machine.certname.removesuffix(".emfcamp.org") }}</td>
+                            <td>{{ machine.facts.os.distro.id }} {{ machine.facts.os.distro.release.full }}</td>
+                            <td>{{ machine.timestamp | from_iso | friendly_date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+{% endblock %}
