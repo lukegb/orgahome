@@ -3,7 +3,7 @@
 import enum
 import logging
 import sys
-from collections.abc import Iterable
+from collections.abc import AsyncIterable, AsyncIterator, Iterable
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +25,18 @@ class State(enum.Enum):
     DONE = 14
 
 
-class Buffer:
-    def __init__(self, iterable: Iterable[bytes]):
+class AsyncBuffer(AsyncIterable[bytes]):
+    def __init__(self, iterable: AsyncIterable[bytes]):
         self.next_state(State.READING_HEADER_AND_LSD, 0xD)
         self.extension_block_type = None
         self.extension_block = None
         self.holdback_buffer = []
         self.iterable = iterable
 
-    def __iter__(self) -> Iterable[bytes]:
-        for b in self.iterable:
-            yield from self.consume(b)
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        async for b in self.iterable:
+            for chunk in self.consume(b):
+                yield chunk
             if self.state == State.DONE:
                 return
         # Just send whatever we had left.
@@ -100,7 +101,10 @@ class Buffer:
                     yield bytes(b)
                     self.next_state(State.READING_IMAGE_DESCRIPTOR, 9)
                 else:
-                    assert False, f"unknown block type {b[0]}"
+                    # assert False, f"unknown block type {b[0]}"
+                    # Be more lenient
+                    logger.warning(f"unknown block type {b[0]}")
+                    self.next_state(State.DONE, 0)
             case State.READING_EXTENSION_BLOCK_TYPE:
                 self.extension_block_type = b[0]
                 logging.debug("extension block %02x", b[0])
@@ -170,37 +174,47 @@ class Buffer:
                 self.next_state(State.READING_IMAGE_DATA_HEADER, 1)
 
 
-class Rechunker:
-    def __init__(self, iterable: Iterable[bytes], min_chunk_size: int):
+class AsyncRechunker(AsyncIterable[bytes]):
+    def __init__(self, iterable: AsyncIterable[bytes], min_chunk_size: int):
         self.iterable = iterable
         self.min_chunk_size = min_chunk_size
 
-    def __iter__(self) -> Iterable[bytes]:
+    async def __aiter__(self) -> AsyncIterator[bytes]:
         buffer = bytearray()
-        for chunk in self.iterable:
+        async for chunk in self.iterable:
             buffer.extend(chunk)
             if len(buffer) >= self.min_chunk_size:
                 yield bytes(buffer)
                 buffer = bytearray()
+        if buffer:
+            yield bytes(buffer)
 
 
-def deanimate(input_bytes_iter: Iterable[bytes], min_chunk_size: int = 1024) -> Iterable[bytes]:
-    return iter(Rechunker(iter(Buffer(input_bytes_iter)), min_chunk_size))
+def deanimate(input_bytes_iter: AsyncIterable[bytes], min_chunk_size: int = 1024) -> AsyncIterable[bytes]:
+    return AsyncRechunker(AsyncBuffer(input_bytes_iter), min_chunk_size)
 
 
-def file_iterable(fn: str) -> Iterable[bytes]:
-    with open(fn, "rb") as f:
+async def file_iterable(fn: str) -> AsyncIterable[bytes]:
+    import aiofiles
+
+    async with aiofiles.open(fn, "rb") as f:
         while True:
-            b = f.read(512)
+            b = await f.read(512)
             if not b:
                 return
             yield b
 
 
 if __name__ == "__main__":
-    import os
-    import sys
+    import asyncio
 
-    logging.basicConfig(level=logging.DEBUG)
-    for out in deanimate(file_iterable(sys.argv[1])):
-        sys.stdout.buffer.write(out)
+    async def main():
+        logging.basicConfig(level=logging.DEBUG)
+        if len(sys.argv) < 2:
+            print(f"Usage: {sys.argv[0]} <input_gif>")
+            sys.exit(1)
+
+        async for out in deanimate(file_iterable(sys.argv[1])):
+            sys.stdout.buffer.write(out)
+
+    asyncio.run(main())

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "components/user_card.html" import user_card %}
+{% from "components/user_card.html" import user_card with context %}
 {% block title %}EMF Orga Directory{% endblock %}
 {% block header_controls %}
     <div class="header-controls">
@@ -29,4 +29,4 @@
         </div>
     </main>
 {% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='main.js') }}"></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='main.js') }}"></script>{% endblock %}

@@ -1,33 +1,11 @@
+import logging
 import multiprocessing
-import typing
 
 import click
 import uvicorn
-from a2wsgi import WSGIMiddleware
-from flask import Flask
-from flask.cli import FlaskGroup
-from starlette.applications import Starlette
-from starlette.routing import ASGIApp, Mount
-from starlette.staticfiles import StaticFiles
-
-from orgahome.app import app
 
 
-def create_app():
-    return app
-
-
-def create_asgi_app():
-    flask_app = create_app()
-    flask_app.static_folder = None
-    routes = [
-        Mount("/static", app=StaticFiles(packages=[("orgahome", "static")])),
-        Mount("/", app=typing.cast(ASGIApp, WSGIMiddleware(flask_app))),
-    ]
-    return Starlette(routes=routes)
-
-
-@click.group(cls=FlaskGroup, create_app=create_app)
+@click.group()
 def cli():
     """Management script for orgahome."""
 
@@ -41,14 +19,32 @@ def default_workers() -> int:
 @click.option("-p", "--port", default=5000, type=int)
 @click.option("-w", "--workers", default=None, type=int)
 @click.option("--forwarded-allow-ips", default=[], type=str, multiple=True)
-def uvicorn_command(host, port, workers, forwarded_allow_ips):
-    """Launch Flask serving using uvicorn."""
-    config = uvicorn.Config(
+@click.option("-d", "--debug", is_flag=True, default=False)
+def uvicorn_command(host, port, workers, forwarded_allow_ips, debug):
+    """Launch Starlette serving using uvicorn."""
+
+    # Ensure that the emoji map is loadable.
+    from orgahome.services import get_system_emoji_map
+
+    get_system_emoji_map()
+
+    if debug:
+        asgi_app = "orgahome.app:debug_app"
+        workers = None
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        asgi_app = "orgahome.app:app"
+        workers = default_workers() if workers is None else workers
+        logging.basicConfig(level=logging.INFO)
+    uvicorn.run(
         host=host,
         port=port,
-        app=create_asgi_app(),
-        workers=default_workers() if workers is None else workers,
+        app=asgi_app,
+        reload=debug,
+        workers=workers,
         forwarded_allow_ips=list(forwarded_allow_ips),
     )
-    server = uvicorn.Server(config)
-    server.run()
+
+
+if __name__ == "__main__":
+    cli()

@@ -16,9 +16,8 @@ which is saved locally into emoji.json.
 
 ## Developing
 
-You'll need UFFD API credentials and a Mattermost access token. Ideally, you'd
-also have UFFD OIDC credentials (although you can skip that by
-[turning `OIDC_ENABLED` off](https://flask-oidc.readthedocs.io/en/latest/#testing-and-hacking-on-your-application)).
+You'll need UFFD API credentials, a Mattermost access token, and UFFD OIDC
+credentials.
 
 In production, the Mattermost access token belongs to `systembot`, but a PAT
 will also do - it just needs to be able to list the users that are in the team.
@@ -27,9 +26,12 @@ If you're a Nix enjoyer, you should be able to:
 
 ```
 $ nix develop
-$ python -m orgahome uvicorn --host 127.0.0.1
+$ python -m orgahome uvicorn --host 127.0.0.1 -d
 
 # [hack away]
+$ treefmt  # reformat everything
+$ ty check .
+$ ruff check .
 
 $ nix fmt
 $ nix flake check
@@ -39,7 +41,7 @@ Otherwise, you can probably just get away with uv:
 
 ```
 $ uv sync
-$ uv run python -m orgahome uvicorn 
+$ uv run python -m orgahome uvicorn --host 127.0.0.1 -d
 
 # check formatting/lint
 $ uv run ruff check --fix

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "components/user_card.html" import user_card %}
+{% from "components/user_card.html" import user_card with context %}
 {% block title %}{{ user.display_name }} - EMF Orga Directory{% endblock %}
 {% block content %}
     <main class="container container-centered">

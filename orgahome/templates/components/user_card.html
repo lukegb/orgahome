@@ -1,6 +1,6 @@
 {% macro user_card(user, link_to_detail=True, extra_classes='') %}
     <div class="user-card glass-card {{ extra_classes }}"
-         data-teams='{{ user.teams|tojson }}'
+         data-teams='{{ user.teams_json }}'
          data-name="{{ user.display_name }}">
         {% if user.custom_status_emoji_url %}
             <picture class="status-emoji">

@@ -11,9 +11,12 @@ class Config:
     # OIDC Configuration
     OIDC_CLIENT_SECRETS = os.environ.get("OIDC_CLIENT_SECRETS", "client_secrets.json")
     OIDC_SCOPES = "openid email profile groups"
+    OIDC_CLIENT_ID = os.environ.get("OIDC_CLIENT_ID", "orgahome")
+    OIDC_CLIENT_SECRET = os.environ.get("OIDC_CLIENT_SECRET")
 
     # UFFD API Configuration
-    UFFD_API_URL = os.environ.get("UFFD_API_URL", "https://identity.emfcamp.org/api/v1")
+    UFFD_URL = os.environ.get("UFFD_URL", "https://identity.emfcamp.org")
+    UFFD_API_URL = os.environ.get("UFFD_API_URL", f"{UFFD_URL}/api/v1")
     UFFD_USER = os.environ.get("UFFD_USER")
     UFFD_PASSWORD = os.environ.get("UFFD_PASSWORD")
 
