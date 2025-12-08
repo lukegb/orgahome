@@ -472,3 +472,16 @@ body {
 .machines-table tr:last-child td {
   border-bottom: none;
 }
+
+.text-muted,
+.machines-table .text-muted {
+  color: var(--text-secondary);
+}
+
+.machines-table .distro-cell[data-distro="Debian"] {
+  color: #ff728b;
+}
+
+.machines-table .distro-cell[data-distro="Debian"][data-major="12"] {
+  color: #ffc0cb;
+}

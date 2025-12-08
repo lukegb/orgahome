@@ -7,16 +7,29 @@
                 <thead>
                     <tr>
                         <th>Hostname</th>
+                        <th>Location</th>
+                        <th>Description</th>
                         <th>Distro</th>
                         <th>Last contact</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for machine in inventory %}
+                    {% for machine in combined_info %}
                         <tr>
-                            <td>{{ machine.certname.removesuffix(".emfcamp.org") }}</td>
-                            <td>{{ machine.facts.os.distro.id }} {{ machine.facts.os.distro.release.full }}</td>
-                            <td>{{ machine.timestamp | from_iso | friendly_date }}</td>
+                            <td>{{ machine.inventory.certname.removesuffix(".emfcamp.org") }}</td>
+                            <td class="{% if not machine.emf_info.location or machine.emf_info.location == "[unset]" %}text-muted{% endif %}">
+                                {{ machine.emf_info.location | default("[unset]") }}
+                            </td>
+                            <td class="{% if not machine.emf_info.description or machine.emf_info.description == "[unset]" %}text-muted{% endif %}">
+                                {{ machine.emf_info.description | default("[unset]") }}
+                            </td>
+                            <td class="distro-cell"
+                                data-distro="{{ machine.inventory.facts.os.distro.id }}"
+                                data-major="{{ machine.inventory.facts.os.distro.release.major }}"
+                                data-minor="{{ machine.inventory.facts.os.distro.release.minor }}">
+                                {{ machine.inventory.facts.os.distro.id }} {{ machine.inventory.facts.os.distro.release.full }}
+                            </td>
+                            <td>{{ machine.inventory.timestamp | from_iso | friendly_date }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

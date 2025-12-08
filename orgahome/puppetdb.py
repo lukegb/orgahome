@@ -1,6 +1,7 @@
 """Minimal PuppetDB client."""
 
 import abc
+import json
 import logging
 import ssl
 import typing
@@ -55,6 +56,11 @@ class PuppetInventoryHost(typing.TypedDict):
         return self["timestamp"]
 
 
+class EMFPuppetInfo(typing.TypedDict):
+    location: str
+    description: str
+
+
 class BasePuppetDBClient(abc.ABC):
     @abc.abstractmethod
     async def query_inventory(self) -> list[PuppetInventoryHost]:
@@ -63,6 +69,9 @@ class BasePuppetDBClient(abc.ABC):
 
 class PuppetDBClientException(Exception):
     pass
+
+
+type PQL = list[str | PQL]
 
 
 class PuppetDBClient(BasePuppetDBClient):
@@ -76,6 +85,18 @@ class PuppetDBClient(BasePuppetDBClient):
                 return await response.json()
         except aiohttp.ClientError as e:
             raise PuppetDBClientException(f"Failed to fetch inventory from PuppetDB: {e}") from e
+
+    async def query_resources(self, query: PQL) -> list[dict[str, typing.Any]]:
+        try:
+            async with self.session.get("/pdb/query/v4/resources", params={"query": json.dumps(query)}) as response:
+                response.raise_for_status()
+                return await response.json()
+        except aiohttp.ClientError as e:
+            raise PuppetDBClientException(f"Failed to fetch resources from PuppetDB: {e}") from e
+
+    async def query_emf_info(self) -> dict[str, EMFPuppetInfo]:
+        data = await self.query_resources(["=", "type", "Emf_facts::Emf_host_info"])
+        return {resource["certname"]: resource["parameters"] for resource in data}
 
 
 class DummyPuppetDBClient(BasePuppetDBClient):
