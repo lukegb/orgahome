@@ -3,9 +3,12 @@
          data-teams='{{ user.teams|tojson }}'
          data-name="{{ user.display_name }}">
         {% if user.custom_status_emoji_url %}
-            <img src="{{ user.custom_status_emoji_url }}"
-                 class="status-emoji"
-                 title="{{ user.custom_status.text|default("") }}">
+            <picture class="status-emoji">
+                <source srcset="{{ user.custom_status_emoji_url }}"
+                        media="(prefers-reduced-motion: no-preference)" />
+                <img src="{{ user.custom_status_emoji_url }}?remove_animation=true"
+                     title="{{ user.custom_status.text|default("") }}">
+            </picture>
         {% endif %}
         {% if link_to_detail %}
             <a href="{{ url_for('user_detail', username=user.username) }}"

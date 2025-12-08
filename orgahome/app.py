@@ -14,11 +14,13 @@ from flask import (
     current_app,
     redirect,
     render_template,
+    request,
     url_for,
 )
 from flask_oidc import OpenIDConnect  # type: ignore
 from werkzeug import Response as WerkzeugResponse
 
+from orgahome import gif
 from orgahome.config import Config
 from orgahome.services import (
     MattermostClient,
@@ -229,7 +231,7 @@ async def user_detail(username: str) -> str:
     return render_template("user.html", user=user)
 
 
-def mm_url_proxy(url: str) -> Response:
+def mm_url_proxy(url: str, remove_animation: bool = False) -> Response:
     resp = requests.get(url, headers=mm_client.headers, stream=True)
     resp.raise_for_status()
 
@@ -240,8 +242,11 @@ def mm_url_proxy(url: str) -> Response:
         "connection",
     ]
     headers = [(name, value) for (name, value) in resp.raw.headers.items() if name.lower() not in excluded_headers]
+    content_iter = resp.iter_content(chunk_size=1024)
+    if resp.raw.headers["content-type"].startswith("image/gif") and remove_animation:
+        content_iter = gif.deanimate(content_iter)
 
-    return Response(resp.iter_content(chunk_size=1024), status=resp.status_code, headers=headers)
+    return Response(content_iter, status=resp.status_code, headers=headers)
 
 
 @app.route("/mm_emoji/<emoji_name>")
@@ -254,7 +259,7 @@ def mm_emoji_proxy(emoji_name: str) -> WerkzeugResponse | tuple[str, int]:
             return "Not found", 404
 
         url = mm_client.get_custom_emoji_image_url(emoji_id)
-        return mm_url_proxy(url)
+        return mm_url_proxy(url, request.args.get("remove_animation") == "true")
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 404:
             return "Not found", 404
