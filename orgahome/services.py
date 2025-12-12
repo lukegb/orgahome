@@ -112,9 +112,9 @@ class MattermostClient:
     def get_user_image_url(self, user_id: str) -> str:
         return f"{self.api_url}/users/{user_id}/image"
 
-    async def get_emoji_id_by_name(self, session: aiohttp.ClientSession, emoji_name: str) -> str | None:
+    async def get_emoji_id_by_name(self, emoji_name: str) -> str | None:
         try:
-            async with session.get(f"{self.api_url}/emoji/name/{emoji_name}", headers=self.headers) as response:
+            async with self.session.get(f"{self.api_url}/emoji/name/{emoji_name}", headers=self.headers) as response:
                 if response.status == 404:
                     return None
                 response.raise_for_status()
