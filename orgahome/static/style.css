@@ -373,6 +373,10 @@ body {
 
 /* Responsive Navbar */
 @media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
   .glass-header {
     padding: 1rem;
   }
@@ -465,8 +469,10 @@ body {
   color: var(--text-primary);
 }
 
-.machines-table tr:hover td {
-  background: rgba(255, 255, 255, 0.05);
+@media (min-width: 769px) {
+  .machines-table tr:hover td {
+    background: rgba(255, 255, 255, 0.05);
+  }
 }
 
 .machines-table tr:last-child td {
@@ -521,12 +527,11 @@ body {
 }
 
 .machine-details-row {
-  display: none;
   background: rgba(255, 255, 255, 0.02);
 }
 
-.machine-details-row.visible {
-  display: table-row;
+.machine-details-row:not(.visible) {
+  display: none;
 }
 
 .machine-details-content {
@@ -561,4 +566,174 @@ body {
 
 .website-link {
   color: inherit;
+}
+
+/* Mobile Card View for Machines Table */
+@media (max-width: 768px) {
+  .machines-card {
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  /* Force table to not behave like a table */
+  .machines-table,
+  .machines-table thead,
+  .machines-table tbody,
+  .machines-table th,
+  .machines-table td,
+  .machines-table tr {
+    display: block;
+  }
+
+  /* Hide table headers (but keep them accessible) */
+  .machines-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  /* Style table rows as cards */
+  .machines-table .machine-row {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    position: relative;
+  }
+
+  /* Style table cells */
+  .machines-table td {
+    /* Behave like a "row" */
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    padding-left: 45% !important;
+    /* Space for labels */
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .machines-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* Add labels before the content */
+  .machines-table td::before {
+    position: absolute;
+    top: 0.75rem;
+    left: 0;
+    width: 40%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  /*
+   * Label Mapping
+   * 1: Toggle Button
+   * 2: Hostname
+   * 3: Location
+   * 4: Description
+   * 5: Distro
+   * 6: Last contact
+   * 7: Last status
+   */
+  .machine-row td:nth-of-type(2)::before {
+    content: "Hostname";
+  }
+
+  .machine-row td:nth-of-type(3)::before {
+    content: "Location";
+  }
+
+  .machine-row td:nth-of-type(4)::before {
+    content: "Description";
+  }
+
+  .machine-row td:nth-of-type(5)::before {
+    content: "Distro";
+  }
+
+  .machine-row td:nth-of-type(6)::before {
+    content: "Last Contact";
+  }
+
+  .machine-row td:nth-of-type(7)::before {
+    content: "Status";
+  }
+
+  /* Special handling for the toggle button (1st column) */
+  .machine-row td:nth-of-type(1) {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: auto;
+    padding: 0;
+    border: none;
+    text-align: right;
+    margin: 0;
+  }
+
+  .machine-row td:nth-of-type(1)::before {
+    content: "" !important;
+  }
+
+  /* Special handling for hostname (2nd column) to make it stand out */
+  .machine-row td:nth-of-type(2) {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    padding-right: 2rem;
+    /* Make space for the button */
+    padding-top: 0.5rem;
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: 0.5rem;
+    padding-left: 0 !important;
+    text-align: left;
+  }
+
+  .machine-row td:nth-of-type(2)::before {
+    /* Hide label for hostname, it's the title */
+    display: none;
+  }
+
+  .machine-row.machine-details-expanded {
+    border-radius: 12px 12px 0 0;
+  }
+
+  /* Details Row */
+  .machine-details-row:not(.visible) {
+    display: none;
+  }
+
+  .machine-details-row {
+    /* It should be hidden by default (handled by JS/existing CSS),
+        but when visible, it should look integrated */
+    margin-top: -1rem;
+    margin-bottom: 1rem;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border: 1px solid var(--card-border);
+    border-top: none;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .machine-details-row td {
+    padding: 0;
+    padding-left: 0 !important;
+    text-align: left;
+  }
+
+  .machine-details-row td::before {
+    display: none;
+  }
 }

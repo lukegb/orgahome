@@ -2,7 +2,7 @@
 {% block title %}EMF{% endblock %}
 {% block content %}
     <main class="container">
-        <div class="glass-card glass-card-no-hover">
+        <div class="glass-card glass-card-no-hover machines-card">
             <table class="machines-table">
                 <thead>
                     <tr>
@@ -17,7 +17,7 @@
                 </thead>
                 <tbody>
                     {% for machine in combined_info %}
-                        <tr>
+                        <tr class="machine-row">
                             <td>
                                 <button class="machine-toggle-btn" aria-label="Toggle details">▶</button>
                             </td>
@@ -31,8 +31,9 @@
                             <td class="distro-cell"
                                 data-distro="{{ machine.inventory.facts.os.distro.id }}"
                                 data-major="{{ machine.inventory.facts.os.distro.release.major }}"
-                                data-minor="{{ machine.inventory.facts.os.distro.release.minor }}">
-                                {{ machine.inventory.facts.os.distro.id }} {{ machine.inventory.facts.os.distro.release.full }}
+                                data-minor="{{ machine.inventory.facts.os.distro.release.minor }}"
+                                data-codename="{{ machine.inventory.facts.os.distro.codename }}">
+                                {{ machine.inventory.facts.os.distro.id }} {{ machine.inventory.facts.os.distro.release.full }} ({{ machine.inventory.facts.os.distro.codename }})
                             </td>
                             <td>{{ machine.node.report_timestamp | from_iso | friendly_date }}</td>
                             <td class="machines-status"

@@ -182,6 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ) {
         detailsRow.classList.toggle("visible");
         btn.classList.toggle("expanded");
+        row.classList.toggle("machine-details-expanded");
       }
     }
   });
