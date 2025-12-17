@@ -42,6 +42,7 @@ def uvicorn_command(host, port, workers, forwarded_allow_ips, debug):
         host=host,
         port=port,
         app=asgi_app,
+        factory=True,
         reload=debug,
         workers=workers,
         forwarded_allow_ips=list(forwarded_allow_ips),

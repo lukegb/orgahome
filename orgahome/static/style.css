@@ -568,6 +568,10 @@ body {
   color: inherit;
 }
 
+.catalog-version-link {
+  color: var(--catalog-color);
+}
+
 /* Mobile Card View for Machines Table */
 @media (max-width: 768px) {
   .machines-card {

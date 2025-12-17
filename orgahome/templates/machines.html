@@ -22,10 +22,10 @@
                                 <button class="machine-toggle-btn" aria-label="Toggle details">▶</button>
                             </td>
                             <td>{{ machine.inventory.certname.removesuffix(".emfcamp.org") }}</td>
-                            <td class="{% if not machine.emf_info.location or machine.emf_info.location == "[unset]" %}text-muted{% endif %}">
+                            <td class="{% if not machine.emf_info.location or machine.emf_info.location == " [unset]" %}text-muted{% endif %}">
                                 {{ machine.emf_info.location | default("[unset]") }}
                             </td>
-                            <td class="{% if not machine.emf_info.description or machine.emf_info.description == "[unset]" %}text-muted{% endif %}">
+                            <td class="{% if not machine.emf_info.description or machine.emf_info.description == " [unset]" %}text-muted{% endif %}">
                                 {{ machine.emf_info.description | default("[unset]") }}
                             </td>
                             <td class="distro-cell"
@@ -33,9 +33,22 @@
                                 data-major="{{ machine.inventory.facts.os.distro.release.major }}"
                                 data-minor="{{ machine.inventory.facts.os.distro.release.minor }}"
                                 data-codename="{{ machine.inventory.facts.os.distro.codename }}">
-                                {{ machine.inventory.facts.os.distro.id }} {{ machine.inventory.facts.os.distro.release.full }} ({{ machine.inventory.facts.os.distro.codename }})
+                                {{ machine.inventory.facts.os.distro.id }} {{ machine.inventory.facts.os.distro.release.full }}
+                                ({{ machine.inventory.facts.os.distro.codename }})
                             </td>
-                            <td>{{ machine.node.report_timestamp | from_iso | friendly_date }}</td>
+                            <td>
+                                {{ machine.node.report_timestamp | from_iso | friendly_date }}
+                                {% if machine.catalog_commit_hash %}
+                                    <div class="catalog-version">
+                                        <a href="https://github.com/emfcamp/puppet/commit/{{ machine.catalog_commit_hash }}"
+                                           target="_blank"
+                                           class="catalog-version-link"
+                                           style="--catalog-color: {{ machine.catalog.version | color_hash }}">
+                                            {{ machine.catalog.version }}
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </td>
                             <td class="machines-status"
                                 data-status="{{ machine.node.latest_report_status }}">
                                 {{ machine.node.latest_report_status }}

@@ -97,6 +97,12 @@ class PuppetNode(typing.TypedDict):
     latest_report_job_id: str | None
 
 
+class PuppetCatalog(typing.TypedDict):
+    certname: str
+    version: str
+    environment: str
+
+
 class BasePuppetDBClient(abc.ABC):
     @abc.abstractmethod
     async def query_inventory(self) -> list[PuppetInventoryHost]:
@@ -116,6 +122,10 @@ class BasePuppetDBClient(abc.ABC):
 
     @abc.abstractmethod
     async def query_nodes(self) -> list[PuppetNode]:
+        pass
+
+    @abc.abstractmethod
+    async def query_catalogs(self) -> list[PuppetCatalog]:
         pass
 
 
@@ -176,7 +186,14 @@ class PuppetDBClient(BasePuppetDBClient):
                 return await response.json()
         except aiohttp.ClientError as e:
             raise PuppetDBClientException(f"Failed to fetch nodes from PuppetDB: {e}") from e
-        pass
+
+    async def query_catalogs(self) -> list[PuppetCatalog]:
+        try:
+            async with self.session.get("/pdb/query/v4/catalogs") as response:
+                response.raise_for_status()
+                return await response.json()
+        except aiohttp.ClientError as e:
+            raise PuppetDBClientException(f"Failed to fetch catalogs from PuppetDB: {e}") from e
 
 
 class DummyPuppetDBClient(BasePuppetDBClient):
@@ -197,6 +214,10 @@ class DummyPuppetDBClient(BasePuppetDBClient):
         return {}
 
     async def query_nodes(self) -> list[PuppetNode]:
+        logger.error("PuppetDB querying is disabled (DummyPuppetDBClient in use)")
+        return []
+
+    async def query_catalogs(self) -> list[PuppetCatalog]:
         logger.error("PuppetDB querying is disabled (DummyPuppetDBClient in use)")
         return []
 

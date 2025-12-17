@@ -28,7 +28,7 @@ class State(TypedDict):
     mm_client: MattermostClient
     oauth: OAuth
     templates: Jinja2Templates
-    puppetdb: puppetdb.BasePuppetDBClient
+    puppetdb_client: puppetdb.BasePuppetDBClient
 
 
 def _friendly_date(x: datetime.datetime) -> str:
@@ -38,6 +38,18 @@ def _friendly_date(x: datetime.datetime) -> str:
         return x.strftime("%H:%M")
     else:
         return x.strftime("%Y-%m-%d %H:%M")
+
+
+_SATURATIONS = [0.35, 0.5, 0.65]
+_LIGHTNESSES = [0.55, 0.65, 0.75]
+
+
+def _color_hash(val: str) -> str:
+    h = hash(val)
+    hue = h % 359
+    sat = _SATURATIONS[int(h / 360 % len(_SATURATIONS))]
+    lightness = _LIGHTNESSES[int(h / 360 / len(_SATURATIONS) % len(_LIGHTNESSES))]
+    return f"hsl({hue}, {sat * 100}%, {lightness * 100}%)"
 
 
 def lifespan_factory(static_files: staticfiles.StaticFilesBase):
@@ -56,6 +68,7 @@ def lifespan_factory(static_files: staticfiles.StaticFilesBase):
         static_files.register_template_functions(templates)
         templates.env.filters["from_iso"] = lambda x: datetime.datetime.fromisoformat(x)
         templates.env.filters["friendly_date"] = _friendly_date
+        templates.env.filters["color_hash"] = _color_hash
 
         async with (
             aiohttp.ClientSession() as session,
@@ -125,5 +138,9 @@ def create_app(debug: bool = False) -> Starlette:
     return Starlette(debug=debug, routes=routes, middleware=middleware, lifespan=lifespan_factory(static_files))
 
 
-app = create_app(debug=False)
-debug_app = create_app(debug=True)
+def app() -> Starlette:
+    return create_app(debug=False)
+
+
+def debug_app() -> Starlette:
+    return create_app(debug=True)
